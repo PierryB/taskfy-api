@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 using pomodoro_api.Data;
 using pomodoro_api.Services;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
