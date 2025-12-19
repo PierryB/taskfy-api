@@ -31,7 +31,15 @@ public class AuthController(AppDbContext context, ITokenService tokenService) : 
         };
 
         _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            return BadRequest(new { message = "Email já está em uso" });
+        }
 
         var token = _tokenService.GenerateToken(user);
 
