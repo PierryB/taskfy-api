@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BCrypt.Net;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using pomodoro_api.Data;
 using pomodoro_api.DTOs;
 using pomodoro_api.Models;
 using pomodoro_api.Services;
-using BCrypt.Net;
+using System.Security.Claims;
 
 namespace pomodoro_api.Controllers;
 
@@ -54,6 +56,29 @@ public class AuthController(AppDbContext context, ITokenService tokenService) : 
         return Ok(new AuthResponseDto
         {
             Token = token,
+            Email = user.Email,
+            Name = user.Name
+        });
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<ActionResult> GetCurrentUser()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim))
+            return Unauthorized();
+
+        var userId = int.Parse(userIdClaim);
+        var user = await _context.Users.FindAsync(userId);
+
+        if (user == null)
+            return NotFound(new { message = "Usuário não encontrado" });
+
+        return Ok(new AuthResponseDto
+        {
+            Token = string.Empty,
             Email = user.Email,
             Name = user.Name
         });
