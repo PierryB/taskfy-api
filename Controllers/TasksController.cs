@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using pomodoro_api.Data;
 using pomodoro_api.Models;
+using pomodoro_api.DTOs;
 using System.Collections;
 using System.Security.Claims;
 
@@ -49,9 +50,16 @@ public class TasksController(AppDbContext context) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> CreateTask(TaskItem task)
+    public async Task<ActionResult> CreateTask(CreateTaskDto dto)
     {
-        task.UserId = GetUserId();
+        var task = new TaskItem
+        {
+            UserId = GetUserId(),
+            Title = dto.Title,
+            Description = dto.Description,
+            Priority = dto.Priority,
+            Category = dto.Category
+        };
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync();
 
@@ -59,26 +67,23 @@ public class TasksController(AppDbContext context) : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateTask(int id, TaskItem task)
+    public async Task<ActionResult> UpdateTask(int id, UpdateTaskDto dto)
     {
         var userId = GetUserId();
-
-        if (id != task.Id)
-            return BadRequest();
 
         var existingTask = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
         if (existingTask == null)
             return NotFound();
 
-        existingTask.Title = task.Title;
-        existingTask.Description = task.Description;
-        existingTask.Priority = task.Priority;
-        existingTask.Category = task.Category;
-        existingTask.IsCompleted = task.IsCompleted;
+        existingTask.Title = dto.Title;
+        existingTask.Description = dto.Description;
+        existingTask.Priority = dto.Priority;
+        existingTask.Category = dto.Category;
+        existingTask.IsCompleted = dto.IsCompleted;
 
-        if (task.IsCompleted && existingTask.CompletedAt == null)
+        if (dto.IsCompleted && existingTask.CompletedAt == null)
             existingTask.CompletedAt = DateTime.UtcNow;
-        else if (!task.IsCompleted)
+        else if (!dto.IsCompleted)
             existingTask.CompletedAt = null;
 
         await _context.SaveChangesAsync();
