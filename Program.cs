@@ -39,9 +39,14 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 // CORS
 builder.Services.AddCors(options =>
 {
+    var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?
+        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+        .Select(origin => origin.Trim())
+        .ToArray() ?? Array.Empty<string>();
+
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://pomodoro-frontend-zeta.vercel.app")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
